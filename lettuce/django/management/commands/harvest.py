@@ -18,7 +18,10 @@ import os
 import sys
 from optparse import make_option
 from django.conf import settings
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
+from django.core.exceptions import ImproperlyConfigured
+from django.db import connection
 from django.test.utils import setup_test_environment
 from django.test.utils import teardown_test_environment
 
@@ -52,6 +55,9 @@ class Command(BaseCommand):
 
         make_option('-s', '--scenarios', action='store', dest='scenarios', default=None,
             help='Comma separated list of scenarios to run'),
+
+        make_option('-t', '--test-database', action='store_true', dest='test_database', default=False,
+            help='Use the test database for running features.'),
     )
     def stopserver(self, failed=False):
         raise SystemExit(int(failed))
@@ -91,6 +97,21 @@ class Command(BaseCommand):
         registry.call_hook('before', 'harvest', locals())
         results = []
         try:
+            try:
+                if options.get('test_database'):
+                    sys.stdout.write("Setting up a test database...\n")
+                    test_db = connection.creation.create_test_db(verbosity=verbosity)
+                    sys.stdout.write("OK\n")
+
+                if 'south' in settings.INSTALLED_APPS:
+                    migrate_options = { 'settings' : options['settings'] }
+                    call_command('migrate', **migrate_options)
+            except ImproperlyConfigured, e:
+                if u"You haven't set the database" in unicode(e):
+                    test_db = None
+                else:
+                    raise e
+
             for path in paths:
                 app_module = None
                 if isinstance(path, tuple) and len(path) is 2:
@@ -114,5 +135,10 @@ class Command(BaseCommand):
 
         finally:
             registry.call_hook('after', 'harvest', results)
+
+            if options.get('test_database') and test_db:
+                sys.stdout.write('Destroying test database...\n')
+                connection.creation.destroy_test_db(test_db)
+
             server.stop(failed)
             teardown_test_environment()
