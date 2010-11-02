@@ -19,6 +19,9 @@ import sys
 from optparse import make_option
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.test.simple import DjangoTestSuiteRunner
+from django.core.exceptions import ImproperlyConfigured
+from django.core.management import call_command
 from django.test.utils import setup_test_environment
 from django.test.utils import teardown_test_environment
 
@@ -27,6 +30,7 @@ from lettuce import registry
 
 from lettuce.django import server
 from lettuce.django import harvest_lettuces
+
 
 class Command(BaseCommand):
     help = u'Run lettuce tests all along installed apps'
@@ -52,7 +56,13 @@ class Command(BaseCommand):
 
         make_option('-s', '--scenarios', action='store', dest='scenarios', default=None,
             help='Comma separated list of scenarios to run'),
+
+        make_option('-t', '--test-database', action='store_true',
+                    dest='test_database', default=False,
+                    help='Use the test database of Django.'),
     )
+
+
     def stopserver(self, failed=False):
         raise SystemExit(int(failed))
 
@@ -70,11 +80,11 @@ class Command(BaseCommand):
         return paths
 
     def handle(self, *args, **options):
-        setup_test_environment()
+        verbosity = int(options.get('verbosity', 4))
+        test_runner = DjangoTestSuiteRunner(verbosity=verbosity)
+        test_runner.setup_test_environment()
 
         settings.DEBUG = options.get('debug', False)
-
-        verbosity = int(options.get('verbosity', 4))
         apps_to_run = tuple(options.get('apps', '').split(","))
         apps_to_avoid = tuple(options.get('avoid_apps', '').split(","))
         run_server = not options.get('no_server', False)
@@ -91,6 +101,24 @@ class Command(BaseCommand):
         registry.call_hook('before', 'harvest', locals())
         results = []
         try:
+            try:
+                if options.get('test_database'):
+                    sys.stdout.write("Setting up a test database...\n")
+                    test_db = test_runner.setup_databases()
+                    sys.stdout.write("OK\n")
+
+                    if 'south' in settings.INSTALLED_APPS:
+                        migrate_options = dict(settings=options['settings'])
+                        call_command('migrate', **migrate_options)
+
+            except ImproperlyConfigured, e:
+                if "You haven't set the database" in unicode(e):
+                    # lettuce will be able to test django projects that
+                    # does not have database
+                    test_db = None
+                else:
+                    raise e
+
             for path in paths:
                 app_module = None
                 if isinstance(path, tuple) and len(path) is 2:
@@ -114,5 +142,11 @@ class Command(BaseCommand):
 
         finally:
             registry.call_hook('after', 'harvest', results)
+
+            if options.get('test_database') and test_db:
+                sys.stdout.write("Destroying test database...\n")
+                test_runner.teardown_databases(test_db)
+                sys.stdout.write("OK\n")
+
+            test_runner.teardown_test_environment()
             server.stop(failed)
-            teardown_test_environment()
