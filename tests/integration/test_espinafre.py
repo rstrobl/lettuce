@@ -17,3 +17,11 @@ def test_test_database_creation_and_migration():
     assert_equals(lines[1], u"Setting up a test database...")
     assert_equals(lines[3], u"Syncing...")
     assert u"Destroying test database..." in out
+
+def test_status_code_with_south():
+    "harvest should not look for features on \"south\" app"
+    FileSystem.pushd(current_directory, 'django', 'espinafre')
+
+    status, out = commands.getstatusoutput("python manage.py harvest --test-database --verbosity=3")
+    assert_equals(status, 0)
+    FileSystem.popd()
