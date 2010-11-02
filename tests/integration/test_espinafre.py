@@ -5,13 +5,14 @@ from lettuce.fs import FileSystem
 current_directory = FileSystem.dirname(__file__)
 
 def test_test_database_creation():
-    "creating test database with the -t param on harvest"
+    "creating and destroying test database with the -t param on harvest"
     FileSystem.pushd(current_directory, 'django', 'espinafre')
 
-    status, out = commands.getstatusoutput("python manage.py harvest --test-database --verbisity=3")
+    status, out = commands.getstatusoutput("python manage.py harvest --test-database --verbosity=3 --apps=leaves")
     assert_equals(status, 0)
     FileSystem.popd()
 
     lines = out.splitlines()
     assert_equals(lines[0], u"Django's builtin server is running at 0.0.0.0:8000")
     assert_equals(lines[1], u"Setting up a test database...")
+    assert u"Destroying test database..." in out
