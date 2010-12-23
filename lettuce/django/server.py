@@ -198,7 +198,8 @@ class Server(object):
         self._actual_server.start()
         self._actual_server.wait()
 
-        addrport = self.address, self._actual_server.port
+        self.port = self._actual_server.port
+        addrport = self.address, self.port
         print "Django's builtin server is running at %s:%d" % addrport
 
     def stop(self, fail=False):
