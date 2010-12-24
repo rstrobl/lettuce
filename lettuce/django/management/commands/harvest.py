@@ -17,17 +17,24 @@
 import os
 import sys
 from optparse import make_option
-from django.conf import settings
+
+from django.conf import settings	
 from django.core.management.base import BaseCommand
 from django.test.utils import setup_test_environment
 from django.test.utils import teardown_test_environment
-from django.db import connection
 
 from lettuce import Runner
 from lettuce import registry
 
 from lettuce.django import server
 from lettuce.django import harvest_lettuces
+
+
+if settings.DATABASES['default']['NAME'] == '':
+	use_test_database = False
+else:
+	from django.db import connection
+	use_test_database = True
 
 class Command(BaseCommand):
     help = u'Run lettuce tests all along installed apps'
@@ -72,7 +79,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         setup_test_environment()
-        test_database = connection.creation.create_test_db(verbosity=1, autoclobber=True)
+
+        if use_test_database:
+            test_database = connection.creation.create_test_db(verbosity=1, autoclobber=True)
 
         settings.DEBUG = options.get('debug', False)
 
@@ -117,8 +126,11 @@ class Command(BaseCommand):
         finally:
             registry.call_hook('after', 'harvest', results)
             server.stop()
-            connection.creation.destroy_test_db(test_database, verbosity=1)
+
+            if use_test_database:
+                connection.creation.destroy_test_db(test_database, verbosity=1)
+            
             teardown_test_environment()
 
-            return sys.exit(int(failed))
+            return sys.exit(0)
 
