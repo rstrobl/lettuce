@@ -33,6 +33,17 @@ def test_django_admin_media_serving():
 
     lines = out.splitlines()
 
-    assert_equals(lines[0], u"Creating test database for alias 'default'...")
+    assert_not_equals(re.match(r"Creating test database for alias '\w+'\.\.\.",lines[0]), None)
     assert_equals(lines[1], u"Preparing to server django's admin site static files...")
-    assert_not_equals(re.match(r"Django's builtin server is running at 0\.0\.0\.0:\d*",lines[2]), None)
+    assert_not_equals(re.match(r"Django's builtin server is running at 0\.0\.0\.0:\d+",lines[2]), None)
+
+def test_django_no_test_database_option():
+    'test whether no test database is used if not wanted'
+
+    FileSystem.pushd(current_directory, "django", "grocery")
+
+    status, out = commands.getstatusoutput("python manage.py harvest --verbosity=2 --no-test-database ./features/")
+    assert_equals(status, 0)
+    FileSystem.popd()
+
+    assert_equals(re.match(r".*Creating test database for alias '\w+'\.\.\..*",out), None)

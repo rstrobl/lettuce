@@ -22,6 +22,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.test.utils import setup_test_environment
 from django.test.utils import teardown_test_environment
+from django.db import connection
 
 from lettuce import Runner
 from lettuce import registry
@@ -30,16 +31,15 @@ from lettuce.django import server
 from lettuce.django import harvest_lettuces
 
 
-if settings.DATABASES['default']['NAME'] == '':
-	use_test_database = False
-else:
-	from django.db import connection
-	use_test_database = True
-
 class Command(BaseCommand):
     help = u'Run lettuce tests all along installed apps'
     args = '[PATH to feature file or folder]'
     requires_model_validation = False
+
+    if settings.DATABASES['default']['NAME'] == '':
+        no_test_database = True
+    else:
+        no_test_database = False
 
     option_list = BaseCommand.option_list[1:] + (
         make_option('-v', '--verbosity', action='store', dest='verbosity', default='4',
@@ -55,12 +55,16 @@ class Command(BaseCommand):
         make_option('-S', '--no-server', action='store_true', dest='no_server', default=False,
             help="will not run django's builtin HTTP server"),
 
+        make_option('-D', '--no-test-database', action='store_true', dest='no_test_database', default=no_test_database,
+            help="will not use a test database"),
+
         make_option('-d', '--debug-mode', action='store_true', dest='debug', default=False,
             help="when put together with builtin HTTP server, forces django to run with settings.DEBUG=True"),
 
         make_option('-s', '--scenarios', action='store', dest='scenarios', default=None,
             help='Comma separated list of scenarios to run'),
     )
+
     def stopserver(self, failed=False):
         raise SystemExit(int(failed))
 
@@ -80,22 +84,23 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         setup_test_environment()
 
-        if use_test_database:
-            test_database = connection.creation.create_test_db(verbosity=1, autoclobber=True)
-
         settings.DEBUG = options.get('debug', False)
 
         verbosity = int(options.get('verbosity', 4))
         apps_to_run = tuple(options.get('apps', '').split(","))
         apps_to_avoid = tuple(options.get('avoid_apps', '').split(","))
-        run_server = not options.get('no_server', False)
+        run_server = not options.get('no_server')
+        use_test_database = not options.get('no_test_database')
+
+        if use_test_database:
+            test_database = connection.creation.create_test_db(verbosity=1, autoclobber=True)
 
         paths = self.get_paths(args, apps_to_run, apps_to_avoid)
         if run_server:
             server.start()
 
-        os.environ['SERVER_NAME'] = server.address
-        os.environ['SERVER_PORT'] = str(server.port)
+            os.environ['SERVER_NAME'] = server.address
+            os.environ['SERVER_PORT'] = str(server.port)
 
         failed = False
 
@@ -125,7 +130,9 @@ class Command(BaseCommand):
 
         finally:
             registry.call_hook('after', 'harvest', results)
-            server.stop()
+
+            if run_server:
+                server.stop()
 
             if use_test_database:
                 connection.creation.destroy_test_db(test_database, verbosity=1)

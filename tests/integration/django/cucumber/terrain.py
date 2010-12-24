@@ -8,7 +8,7 @@ from nose.tools import assert_equals
 @before.harvest
 def before_harvest(variables):
     assert_equals(variables.keys(), [
-        'paths',
+        'use_test_database',
         'failed',
         'run_server',
         'verbosity',
@@ -16,6 +16,7 @@ def before_harvest(variables):
         'self',
         'apps_to_run',
         'apps_to_avoid',
+        'paths',
         'options'
         ]
     )
