@@ -15,7 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import commands
-from tests.asserts import assert_equals
+import re
+
+from tests.asserts import assert_equals, assert_not_equals
 from lettuce.fs import FileSystem
 
 current_directory = FileSystem.dirname(__file__)
@@ -30,5 +32,7 @@ def test_django_admin_media_serving():
     FileSystem.popd()
 
     lines = out.splitlines()
-    assert_equals(lines[0], u"Preparing to server django's admin site static files...")
-    assert_equals(lines[1], u"Django's builtin server is running at 0.0.0.0:8000")
+
+    assert_equals(lines[0], u"Creating test database for alias 'default'...")
+    assert_equals(lines[1], u"Preparing to server django's admin site static files...")
+    assert_not_equals(re.match(r"Django's builtin server is running at 0\.0\.0\.0:\d*",lines[2]), None)
