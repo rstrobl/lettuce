@@ -105,7 +105,7 @@ def dicts_to_string(dicts, order):
 
     return deline(u"\n".join(table) + u"\n")
 
-def parse_hashes(lines):
+def convert_rows_to_dictionary(lines):
     escape = "#{%s}" % str(time.time())
     def enline(line):
         return unicode(line.replace("\\|", escape)).strip()
@@ -128,5 +128,38 @@ def parse_hashes(lines):
             values = split_wisely(line, u"|", True)
             values = map(deline, values)
             hashes.append(dict(zip(keys, values)))
+
+    return keys, hashes
+
+def convert_columns_to_dictionary(lines):
+    escape = "#{%s}" % str(time.time())
+    def enline(line):
+        return unicode(line.replace("\\|", escape)).strip()
+    def deline(line):
+        return line.replace(escape, '|')
+    def discard_comments(lines):
+        return [line for line in lines if not line.startswith('#')]
+
+    lines = discard_comments(lines)
+    lines = map(enline, lines)
+
+    keys = []
+    hashes = []
+    values = []
+
+    if lines:
+        for line in range(len(lines)):
+            row = split_wisely(lines[line], u"|", True)
+			
+            keys.append(row[0])
+
+            for column in range(1, len(row)):
+                if line == 0:
+                    values.append([])
+	    			
+                values[column - 1].append(row[column])
+			
+                if line == len(lines) - 1:
+                    hashes.append(dict(zip(keys, values[column - 1])))
 
     return keys, hashes

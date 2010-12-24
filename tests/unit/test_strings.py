@@ -199,8 +199,8 @@ def test_dicts_to_string_escapes_pipe():
         u"| Miguel \\| Arcanjo | 19  |\n"
     )
 
-def test_parse_hashes():
-    "strings.parse_hashes"
+def test_convert_rows_to_dictionary():
+    "strings.convert_rows_to_dictionary"
 
     keys = [u'name', u'age']
     dicts = [
@@ -221,13 +221,13 @@ def test_parse_hashes():
         u"| Miguel         | 33  |\n",
     ]
 
-    got_keys, got_dicts = strings.parse_hashes(table)
+    got_keys, got_dicts = strings.convert_rows_to_dictionary(table)
 
     assert_equals(keys, got_keys)
     assert_equals(dicts, got_dicts)
 
-def test_parse_hashes_escapes_pipes():
-    "strings.parse_hashes escapes pipe"
+def test_convert_rows_to_dictionary_escapes_pipes():
+    "strings.convert_rows_to_dictionary escapes pipe"
 
     keys = [u'name', u'age']
     dicts = [
@@ -248,7 +248,7 @@ def test_parse_hashes_escapes_pipes():
         u"| Miguel \| Silva   | 33  |\n",
     ]
 
-    got_keys, got_dicts = strings.parse_hashes(table)
+    got_keys, got_dicts = strings.convert_rows_to_dictionary(table)
 
     assert_equals(keys, got_keys)
     assert_equals(dicts, got_dicts)

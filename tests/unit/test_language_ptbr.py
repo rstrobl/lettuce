@@ -92,7 +92,7 @@ def test_scenario_ptbr_from_string():
         u'Consolidar o banco de dados de cursos universitários em arquivo texto'
     )
     assert_equals(
-        scenario.steps[0].hashes,
+        scenario.steps[0].rows_as_dict,
         [
             {'Nome': u'Ciência da Computação', u'Duração': '5 anos'},
             {'Nome': u'Nutrição', u'Duração': '4 anos'},
@@ -158,7 +158,7 @@ def test_feature_ptbr_from_string():
     )
 
     assert_equals(
-        scenario.steps[-1].hashes,
+        scenario.steps[-1].rows_as_dict,
         [
             {'nome': u'João', u'valor devido': 'R$ 512,66'},
             {'nome': u'Maria', u'valor devido': 'R$ 998,41'},

@@ -148,11 +148,17 @@ class Step(object):
     def __init__(self, sentence, remaining_lines, line=None, filename=None):
         self.sentence = sentence
         self.original_sentence = sentence
-        self._remaining_lines = remaining_lines
-        keys, hashes = self._parse_remaining_lines(remaining_lines)
 
-        self.keys = tuple(keys)
-        self.hashes = list(hashes)
+        self._remaining_lines = remaining_lines
+
+        row_keys, rows_as_dict = strings.convert_rows_to_dictionary(remaining_lines)  
+        self.row_keys = tuple(row_keys)
+        self.rows_as_dict = list(rows_as_dict)
+
+        column_keys, columns_as_dict = strings.convert_columns_to_dictionary(remaining_lines)
+        self.column_keys = tuple(column_keys)
+        self.columns_as_dict = list(columns_as_dict)
+
         self.described_at = StepDescription(line, filename)
 
         self.proposed_method_name, self.proposed_sentence = self.propose_definition()
@@ -224,7 +230,7 @@ class Step(object):
         max_length_original = len(self.original_sentence) + self.indentation
 
         max_length = max([max_length_original, max_length_sentence])
-        for data in self.hashes:
+        for data in self.rows_as_dict:
             key_size = self._calc_key_length(data)
             if key_size > max_length:
                 max_length = key_size
@@ -243,14 +249,11 @@ class Step(object):
         return strings.rfill(head, self.scenario.feature.max_length + 1, append=u'# %s:%d\n' % (where.file, where.line))
 
     def represent_hashes(self):
-        lines = strings.dicts_to_string(self.hashes, self.keys).splitlines()
+        lines = strings.dicts_to_string(self.rows_as_dict, self.row_keys).splitlines()
         return u"\n".join([(u" " * self.table_indentation) + line for line in lines]) + "\n"
 
     def __repr__(self):
         return u'<Step: "%s">' % self.sentence
-
-    def _parse_remaining_lines(self, lines):
-        return strings.parse_hashes(lines)
 
     def _get_match(self, ignore_case):
         matched, func = None, lambda: None
@@ -615,7 +618,7 @@ class Scenario(object):
         if len(splitted) > 1:
             parts = [l for l in splitted[1:] if l not in language.examples]
             part = "".join(parts)
-            keys, outlines = strings.parse_hashes(strings.get_stripped_lines(part))
+            keys, outlines = strings.convert_rows_to_dictionary(strings.get_stripped_lines(part))
 
         lines = strings.get_stripped_lines(string)
         scenario_line = lines.pop(0)

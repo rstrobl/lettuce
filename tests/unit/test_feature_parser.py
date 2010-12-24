@@ -184,9 +184,9 @@ def test_feature_has_scenarios():
         assert_equals(type(scenario), Scenario)
         assert_equals(scenario.name, expected_name)
 
-    assert_equals(feature.scenarios[1].steps[0].keys, ('Name', 'Rating', 'New', 'Available'))
+    assert_equals(feature.scenarios[1].steps[0].row_keys, ('Name', 'Rating', 'New', 'Available'))
     assert_equals(
-        feature.scenarios[1].steps[0].hashes,
+        feature.scenarios[1].steps[0].rows_as_dict,
         [
             {'Name': 'A night at the museum 2', 'Rating': '3 stars', 'New': 'yes', 'Available': '9'},
             {'Name': 'Matrix Revolutions', 'Rating': '4 stars', 'New': 'no', 'Available': '6'},

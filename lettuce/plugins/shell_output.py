@@ -28,7 +28,7 @@ def wrt(what):
 @before.each_step
 def print_step_running(step):
     wrt(step.represent_string(step.original_sentence))
-    if step.hashes:
+    if step.rows_as_dict:
         wrt(step.represent_hashes())
 
 @after.each_step
@@ -36,8 +36,8 @@ def print_step_ran(step):
     if step.scenario.outlines:
         return
 
-    if step.hashes:
-        wrt("\033[A" * (len(step.hashes) + 1))
+    if step.rows_as_dict:
+        wrt("\033[A" * (len(step.rows_as_dict) + 1))
 
     if step.defined_at:
         wrt("\033[A" + step.represent_string(step.original_sentence))
@@ -45,7 +45,7 @@ def print_step_ran(step):
     else:
         wrt(step.represent_string(step.original_sentence).rstrip() + " (undefined)\n")
 
-    if step.hashes:
+    if step.rows_as_dict:
         wrt(step.represent_hashes())
 
     if step.failed:

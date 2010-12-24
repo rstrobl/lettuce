@@ -48,21 +48,27 @@ def test_can_get_sentence_from_string():
         string.split(I_HAVE_TASTY_BEVERAGES, '\n')[0]
     )
 
-def test_can_parse_keys_from_table():
-    "It should take the keys from the step, if it has a table"
+def test_can_parse_column_keys_from_table():
+    "It should take the column keys from the step, if it has a table"
 
     step = Step.from_string(I_HAVE_TASTY_BEVERAGES)
-    assert_equals(step.keys, ('Name', 'Type', 'Price'))
+    assert_equals(step.column_keys, ('Name', 'Skol', 'Nestea'))
 
-def test_can_parse_tables():
-    "It should have a list of data from a given step, if it has a table"
+def test_can_parse_row_keys_from_table():
+    "It should take the row keys from the step, if it has a table"
+
+    step = Step.from_string(I_HAVE_TASTY_BEVERAGES)
+    assert_equals(step.row_keys, ('Name', 'Type', 'Price'))
+
+def test_can_parse_tables_to_row_dicts():
+    "It should have a row dict of data from a given step, if it has a table"
 
     step = Step.from_string(I_HAVE_TASTY_BEVERAGES)
 
-    assert isinstance(step.hashes, list)
-    assert_equals(len(step.hashes), 2)
+    assert isinstance(step.rows_as_dict, list)
+    assert_equals(len(step.rows_as_dict), 2)
     assert_equals(
-        step.hashes[0],
+        step.rows_as_dict[0],
         {
             'Name': 'Skol',
             'Type': 'Beer',
@@ -70,11 +76,35 @@ def test_can_parse_tables():
         }
     )
     assert_equals(
-        step.hashes[1],
+        step.rows_as_dict[1],
         {
             'Name': 'Nestea',
             'Type': 'Ice-tea',
             'Price': '2.10'
+        }
+    )
+
+def test_can_parse_tables_to_column_dicts():
+    "It should have a column dict of data from a given step, if it has a table"
+
+    step = Step.from_string(I_HAVE_TASTY_BEVERAGES)
+
+    assert isinstance(step.columns_as_dict, list)
+    assert_equals(len(step.columns_as_dict), 2)
+    assert_equals(
+        step.columns_as_dict[0],
+        {
+            'Name': 'Type',
+            'Skol': 'Beer',
+            'Nestea': 'Ice-tea'
+        }
+    )
+    assert_equals(
+        step.columns_as_dict[1],
+        {
+            'Name': 'Price',
+            'Skol': '3.80',
+            'Nestea': '2.10'
         }
     )
 

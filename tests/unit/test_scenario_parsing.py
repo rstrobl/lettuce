@@ -207,9 +207,9 @@ def test_scenario_has_steps():
         assert_equals(type(step), Step)
         assert_equals(step.sentence, expected_sentence)
 
-    assert_equals(scenario.steps[0].keys, ('Name', 'Duration'))
+    assert_equals(scenario.steps[0].row_keys, ('Name', 'Duration'))
     assert_equals(
-        scenario.steps[0].hashes,
+        scenario.steps[0].rows_as_dict,
         [
             {'Name': 'Computer Science', 'Duration': '5 years'},
             {'Name': 'Nutrition', 'Duration': '4 years'},
