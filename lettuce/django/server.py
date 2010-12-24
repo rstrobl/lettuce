@@ -202,7 +202,7 @@ class Server(object):
         addrport = self.address, self.port
         print "Django's builtin server is running at %s:%d" % addrport
 
-    def stop(self, fail=False):
+    def stop(self):
         http = httplib.HTTPConnection(self.address, self.port)
         try:
             http.request("DELETE", "/")
@@ -211,9 +211,7 @@ class Server(object):
             pass
         finally:
             http.close()
-            code = int(fail)
             call_hook('after', 'runserver', self._actual_server)
-            return sys.exit(code)
 
     def url(self, url=""):
         base_url = "http://%s" % ThreadedServer.get_real_address(self.address)
