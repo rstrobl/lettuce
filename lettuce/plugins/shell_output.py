@@ -28,7 +28,7 @@ def wrt(what):
 @before.each_step
 def print_step_running(step):
     wrt(step.represent_string(step.original_sentence))
-    if step.rows_as_dict:
+    if step.rows:
         wrt(step.represent_hashes())
 
 @after.each_step

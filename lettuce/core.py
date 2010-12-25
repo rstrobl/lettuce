@@ -151,6 +151,8 @@ class Step(object):
 
         self._remaining_lines = remaining_lines
 
+        self.rows = strings.convert_rows_to_list(remaining_lines)
+
         row_keys, rows_as_dict = strings.convert_rows_to_dictionary(remaining_lines)  
         self.row_keys = tuple(row_keys)
         self.rows_as_dict = list(rows_as_dict)
@@ -249,7 +251,8 @@ class Step(object):
         return strings.rfill(head, self.scenario.feature.max_length + 1, append=u'# %s:%d\n' % (where.file, where.line))
 
     def represent_hashes(self):
-        lines = strings.dicts_to_string(self.rows_as_dict, self.row_keys).splitlines()
+#        lines = strings.dicts_to_string(self.rows_as_dict, self.row_keys).splitlines()
+        lines = strings.list_to_string(self.rows)
         return u"\n".join([(u" " * self.table_indentation) + line for line in lines]) + "\n"
 
     def __repr__(self):

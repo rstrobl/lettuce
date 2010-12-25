@@ -71,6 +71,36 @@ def rfill(string, times, char=u" ", append=u""):
 def getlen(string):
     return len(string) + 1
 
+def list_to_string(lines):
+    escape = "#{%s}" % str(time.time())
+    def enline(line):
+        return unicode(line).replace("|", escape)
+    def deline(line):
+        return line.replace(escape, '\\|')
+   
+    keys_and_sizes = list(getlen(l) for l in lines[0])
+    for key in range(len(keys_and_sizes)):
+        for data in lines:
+            current_size = keys_and_sizes[key]
+            value = unicode(data[key])
+            size = getlen(value)
+            if size > current_size:
+                keys_and_sizes[key] = size
+	
+
+    table = []
+
+    for data in lines:
+        names = []
+        for key in range(len(keys_and_sizes)):
+            value = data[key]
+            size = keys_and_sizes[key]
+            names.append(enline(u" %s" % rfill(value, size)))
+
+        table.append(u"|%s|" % "|".join(names))
+
+    return table
+
 def dicts_to_string(dicts, order):
     escape = "#{%s}" % str(time.time())
     def enline(line):
@@ -104,6 +134,25 @@ def dicts_to_string(dicts, order):
         table.append(u"|%s|" % "|".join(names))
 
     return deline(u"\n".join(table) + u"\n")
+
+def convert_rows_to_list(lines):
+    escape = "#{%s}" % str(time.time())
+    def enline(line):
+        return unicode(line.replace("\\|", escape)).strip()
+    def deline(line):
+        return line.replace(escape, '|')
+    def discard_comments(lines):
+        return [line for line in lines if not line.startswith('#')]
+
+    lines = discard_comments(lines)
+    lines = map(enline, lines)
+
+    rows = list()
+
+    for line in lines:
+        rows.append(split_wisely(line, u"|", True))
+
+    return rows
 
 def convert_rows_to_dictionary(lines):
     escape = "#{%s}" % str(time.time())

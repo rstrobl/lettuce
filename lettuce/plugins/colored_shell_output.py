@@ -94,7 +94,7 @@ def print_step_ran(step):
 
     write_out("%s%s%s" % (prefix, color, string))
 
-    if step.rows_as_dict:
+    if step.rows:
         for line in step.represent_hashes().splitlines():
             write_out("%s%s\033[0m\n" % (color, line))
 
