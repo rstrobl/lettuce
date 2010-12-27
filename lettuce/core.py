@@ -161,6 +161,10 @@ class Step(object):
         self.column_keys = tuple(column_keys)
         self.columns_as_dict = list(columns_as_dict)
 
+        # reintroduced hashes for backwards compatibility
+        self.keys = self.row_keys
+        self.hashes = self.rows_as_dict
+
         self.described_at = StepDescription(line, filename)
 
         self.proposed_method_name, self.proposed_sentence = self.propose_definition()
@@ -251,7 +255,6 @@ class Step(object):
         return strings.rfill(head, self.scenario.feature.max_length + 1, append=u'# %s:%d\n' % (where.file, where.line))
 
     def represent_hashes(self):
-#        lines = strings.dicts_to_string(self.rows_as_dict, self.row_keys).splitlines()
         lines = strings.list_to_string(self.rows)
         return u"\n".join([(u" " * self.table_indentation) + line for line in lines]) + "\n"
 
